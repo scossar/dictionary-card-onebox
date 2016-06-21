@@ -1,6 +1,8 @@
 # name: Dictionary Card Onebox
 # about: an internal onebox for Dictionary Cards
 
+register_asset 'stylesheets/dictionary-card-onebox.scss'
+
 after_initialize do
   Onebox::Engine::DiscourseLocalOnebox.class_eval do
     alias_method :super_to_html, :to_html
@@ -27,7 +29,8 @@ after_initialize do
                 extras: p[:extras]
             }
           end
-          content = post.raw
+          image_url = topic.image_url
+          content = post.cooked
           args = { original_url: url,
                    title: PrettyText.unescape_emoji(CGI::escapeHTML(topic.title)),
                    avatar: PrettyText.avatar_img(topic.user.avatar_template, 'tiny'),
@@ -37,6 +40,7 @@ after_initialize do
                    views: topic.views,
                    posters: posters,
                    content: content,
+                   image_url: image_url,
                    category_html: CategoryBadge.html_for(topic.category),
                    topic: topic.id }
 
