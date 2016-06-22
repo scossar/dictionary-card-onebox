@@ -4,6 +4,25 @@
 register_asset 'stylesheets/dictionary-card-onebox.scss'
 
 after_initialize do
+
+  Post.class_eval do
+    alias_method :super_cook, :cook
+
+    def cook(*args)
+      if args[1] && args[1][:topic_id]
+        category_slug = Topic.find(args[1][:topic_id]).category.slug
+        puts "category slug #{category_slug}"
+        puts "CONTENT #{args[0]}"
+        # args[0] = "THIS IS A DICTIONARY"
+        # if category_slug == 'dictionary'
+        #   args[0] = "THIS IS A DICTIONARY"
+        # end
+      end
+      super_cook('this is a dictionary', topic_id: args[1][:topic_id])
+    end
+
+  end
+
   Onebox::Engine::DiscourseLocalOnebox.class_eval do
     alias_method :super_to_html, :to_html
 
@@ -31,18 +50,21 @@ after_initialize do
           end
           image_url = topic.image_url
           content = post.cooked
-          args = { original_url: url,
-                   title: PrettyText.unescape_emoji(CGI::escapeHTML(topic.title)),
-                   avatar: PrettyText.avatar_img(topic.user.avatar_template, 'tiny'),
-                   posts_count: topic.posts_count,
-                   last_post: FreedomPatches::Rails4.time_ago_in_words(topic.last_posted_at, false, scope: :'datetime.distance_in_words_verbose'),
-                   age: FreedomPatches::Rails4.time_ago_in_words(topic.created_at, false, scope: :'datetime.distance_in_words_verbose'),
-                   views: topic.views,
-                   posters: posters,
-                   content: content,
-                   image_url: image_url,
-                   category_html: CategoryBadge.html_for(topic.category),
-                   topic: topic.id }
+          # content = Nokogiri::XML.fragment(content)
+          # content.search('.//img').remove
+
+          args = {original_url: url,
+                  title: PrettyText.unescape_emoji(CGI::escapeHTML(topic.title)),
+                  avatar: PrettyText.avatar_img(topic.user.avatar_template, 'tiny'),
+                  posts_count: topic.posts_count,
+                  last_post: FreedomPatches::Rails4.time_ago_in_words(topic.last_posted_at, false, scope: :'datetime.distance_in_words_verbose'),
+                  age: FreedomPatches::Rails4.time_ago_in_words(topic.created_at, false, scope: :'datetime.distance_in_words_verbose'),
+                  views: topic.views,
+                  posters: posters,
+                  content: content,
+                  image_url: image_url,
+                  category_html: CategoryBadge.html_for(topic.category),
+                  topic: topic.id}
 
           return Mustache.render(File.read("#{Rails.root}/plugins/dictionary-card-onebox/lib/onebox/templates/dictionary_card_onebox.hbs"), args)
         else
