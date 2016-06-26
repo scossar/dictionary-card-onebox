@@ -2,6 +2,7 @@
 # about: an internal onebox for Dictionary Cards
 
 register_asset 'stylesheets/dictionary-card-onebox.scss'
+register_asset 'javascripts/dictionary-entry.js', :server_side
 
 after_initialize do
   Onebox::Engine::DiscourseLocalOnebox.class_eval do
